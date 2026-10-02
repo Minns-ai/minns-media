@@ -1,0 +1,15 @@
+#!/bin/bash
+# Refuse to push any video that is not on the allowlist (videos go public only
+# on the day they are posted). The allowlist lives outside this repo, with the
+# posting log.
+ALLOW="$HOME/Desktop/Minns Showreels/public-media-allowlist.txt"
+[ -f "$ALLOW" ] || { echo "pre-push: allowlist missing at $ALLOW, refusing"; exit 1; }
+bad=0
+for f in $(git ls-files); do
+  case "$f" in README.md|.nojekyll|.githooks/*) continue ;; esac
+  name=$(basename "$f")
+  if ! grep -v '^#' "$ALLOW" | awk '{print $1}' | grep -qx "$name"; then
+    echo "pre-push: $f is not on the allowlist (not posted yet), refusing"; bad=1
+  fi
+done
+exit $bad
